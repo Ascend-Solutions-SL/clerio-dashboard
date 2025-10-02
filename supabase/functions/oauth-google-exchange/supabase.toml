@@ -1,0 +1,4 @@
+[functions.oauth-google-exchange]
+verify_jwt = true
+# Optional: increase timeout if needed (seconds)
+# timeout = 60
