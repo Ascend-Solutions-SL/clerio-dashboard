@@ -666,46 +666,23 @@ export default function Dashboard() {
     )
   }
 
-  // ✅ Función flexible para iconos de estado - acepta cualquier valor
+  // Función simplificada - sin iconos
   const getStatusIcon = (status?: string) => {
-    const statusLower = (status ?? "").toLowerCase()
-
-    // Estados "buenos" - icono verde
-    if (["activo", "ok", "bien", "correcto", "normal", "success", "completado"].includes(statusLower)) {
-      return <CheckCircle className="h-4 w-4 text-green-600" />
-    }
-
-    // Estados "problemáticos" - icono rojo
-    if (["error", "fallo", "problema", "crítico", "bloqueado"].includes(statusLower)) {
-      return <XCircle className="h-4 w-4 text-red-500" />
-    }
-
-    // Estados "en proceso" o "pendientes" - icono amarillo
-    if (["pendiente", "proceso", "warning", "espera", "revision"].includes(statusLower)) {
-      return <Clock className="h-4 w-4 text-amber-500" />
-    }
-
-    // Por defecto - icono gris
-    return <Clock className="h-4 w-4 text-gray-400" />
+    return null
   }
 
-  // ✅ Función flexible para badges de estado - acepta cualquier valor
+  // ✅ Función simplificada para badges de estado - solo activa/inactiva
   const getStatusBadge = (status?: string) => {
     const statusLower = (status ?? "").toLowerCase()
 
-    // Estados "buenos" - badge verde
-    if (["activo", "ok", "bien", "correcto", "normal", "success", "completado"].includes(statusLower)) {
-      return <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-green-200">{status}</Badge>
+    // Estado activa - badge verde suave
+    if (statusLower === "activa" || statusLower === "activo") {
+      return <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-green-200">Activa</Badge>
     }
 
-    // Estados "problemáticos" - badge rojo
-    if (["error", "fallo", "problema", "crítico", "bloqueado"].includes(statusLower)) {
-      return <Badge className="bg-red-50 text-red-700 hover:bg-red-50 border-red-200">{status}</Badge>
-    }
-
-    // Estados "en proceso" - badge amarillo
-    if (["pendiente", "proceso", "warning", "espera", "revision"].includes(statusLower)) {
-      return <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-200">{status}</Badge>
+    // Estado inactiva - badge gris
+    if (statusLower === "inactiva" || statusLower === "inactivo") {
+      return <Badge className="bg-gray-50 text-gray-600 hover:bg-gray-50 border-gray-200">Inactiva</Badge>
     }
 
     // Por defecto - badge gris con el valor exacto de la BD
@@ -743,10 +720,16 @@ export default function Dashboard() {
     .filter((company) => {
       // Filtro por búsqueda
       const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase())
-      
+
+      // ✅ Excluir empresas con 0 facturas procesadas y 0 por revisar
+      const hasActivity = company.processedInvoices > 0 || company.reviewInvoices > 0
+
       // Filtro por estado
-      if (companyStatusFilter === "todos") return matchesSearch
-      return matchesSearch && company.status?.toLowerCase() === companyStatusFilter.toLowerCase()
+      if (companyStatusFilter === "todos") {
+        return matchesSearch && hasActivity
+      }
+
+      return matchesSearch && company.status?.toLowerCase() === companyStatusFilter.toLowerCase() && hasActivity
     })
     .sort((a, b) => {
       switch (companySortBy) {
@@ -970,93 +953,81 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="mx-auto max-w-7xl px-6 pb-2">
-          {/* Company Info Cards */}
-          <div className="space-y-6 mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="mx-auto max-w-7xl px-6 pb-2 pt-8">
+          {/* Company Info Cards - 3 cards in first 3 positions, Facturas card in last 2 positions */}
+          <div className="space-y-2 mb-6">
+            <div className="grid grid-cols-10 gap-3">
               <Card className="bg-white border border-gray-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Ingresos</CardTitle>
-                  <ArrowUpCircle className="h-4 w-4 text-gray-400" />
+                <CardHeader className="flex flex-row items-center justify-center space-y-0 p-2 pb-1">
+                  <CardTitle className="text-xs font-medium text-gray-600 text-center">Ingresos</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-baseline space-x-2">
-                    <div className="text-xl font-bold text-gray-900">€{totalIngresos.toLocaleString()}</div>
-                    <div className="flex items-center text-xs font-medium text-green-600">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                    </div>
+                <CardContent className="p-2 pt-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-base font-bold text-green-800">€{totalIngresos.toLocaleString()}</div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-white border border-gray-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Total Gastos</CardTitle>
-                  <ArrowDownCircle className="h-4 w-4 text-gray-400" />
+                <CardHeader className="flex flex-row items-center justify-center space-y-0 p-2 pb-1">
+                  <CardTitle className="text-xs font-medium text-gray-600 text-center">Gastos</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-baseline space-x-2">
-                    <div className="text-xl font-bold text-gray-900">€{totalGastos.toLocaleString()}</div>
-                    <div className="flex items-center text-xs font-medium text-red-600">
-                      <TrendingUp className="h-3 w-3 mr-1 rotate-180" />
-                    </div>
+                <CardContent className="p-2 pt-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-base font-bold text-gray-900">€{totalGastos.toLocaleString()}</div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card className="bg-white border border-gray-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Beneficio Neto</CardTitle>
-                  <Euro className="h-4 w-4 text-gray-400" />
+                <CardHeader className="flex flex-row items-center justify-center space-y-0 p-2 pb-1">
+                  <CardTitle className="text-xs font-medium text-gray-600 text-center">Beneficio</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-baseline space-x-2">
-                    <div className={`text-xl font-bold ${beneficio >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <CardContent className="p-2 pt-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className={`text-base font-bold ${beneficio >= 0 ? "text-green-800" : "text-red-600"}`}>
                       €{beneficio.toLocaleString()}
                     </div>
-                    {beneficio >= 0 ? (
-                      <div className="flex items-center text-xs font-medium text-green-600">
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-xs font-medium text-red-600">
-                        <TrendingUp className="h-3 w-3 mr-1 rotate-180" />
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Facturas del Período */}
-              <Card className="bg-white border border-gray-200">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">Facturas</CardTitle>
-                  <FileText className="h-4 w-4 text-gray-400" />
+              {/* Empty spaces - positions 4-8 */}
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+              <div></div>
+
+              {/* Facturas del Período - spans last 2 columns */}
+              <Card className="bg-white border border-gray-200 col-span-2">
+                <CardHeader className="flex flex-row items-center justify-center space-y-0 p-2 pb-1">
+                  <CardTitle className="text-xs font-medium text-gray-600 text-center">Facturas</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                <CardContent className="p-2 pt-0">
+                  <div className="grid grid-cols-3 gap-1 text-center">
                     <div>
-                      <div className="flex items-center justify-center space-x-1 mb-1">
-                        <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                      <div className="flex items-center justify-center space-x-0.5 mb-0.5">
+                        <div className="h-1.5 w-1.5 bg-blue-500 rounded-full"></div>
                         <span className="text-xs text-gray-600">Total</span>
                       </div>
-                      <span className="text-lg font-bold text-gray-900">{totalFacturasFiltradas}</span>
+                      <span className="text-sm font-bold text-gray-900">{totalFacturasFiltradas}</span>
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-center space-x-1 mb-1">
-                        <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                        <span className="text-xs text-gray-600">Procesadas</span>
+                      <div className="flex items-center justify-center space-x-0.5 mb-0.5">
+                        <div className="h-1.5 w-1.5 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-gray-600">Proc.</span>
                       </div>
-                      <span className="text-lg font-bold text-gray-900">{procesadasFiltradas}</span>
+                      <span className="text-sm font-bold text-gray-900">{procesadasFiltradas}</span>
                     </div>
 
                     <div>
-                      <div className="flex items-center justify-center space-x-1 mb-1">
-                        <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                        <span className="text-xs text-gray-600">Revisar</span>
+                      <div className="flex items-center justify-center space-x-0.5 mb-0.5">
+                        <div className="h-1.5 w-1.5 bg-red-500 rounded-full"></div>
+                        <span className="text-xs text-gray-600">Rev.</span>
                       </div>
-                      <span className="text-lg font-bold text-gray-900">{incidenciasFiltradas}</span>
+                      <span className="text-sm font-bold text-gray-900">{incidenciasFiltradas}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -1066,92 +1037,37 @@ export default function Dashboard() {
 
           {/* Filters */}
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCompanyFilters(!showCompanyFilters)}
-                  className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+            <div className="flex items-center space-x-2">
+              {/* Invoice Type Filter - stays on the left */}
+              <span className="text-sm font-medium text-gray-700">Tipo:</span>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setInvoiceType("ingresos")}
+                  className={cn(
+                    "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                    invoiceType === "ingresos"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  )}
                 >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtros
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-                {showCompanyFilters && (
-                  <div className="absolute top-full right-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                    <div className="p-4 space-y-4">
-                      {/* Filtro por Estado */}
-                      <div>
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                          Filtrar por Estado
-                        </label>
-                        <div className="space-y-1">
-                          {["todos", "pendiente", "activa", "inactiva"].map((status) => (
-                            <button
-                              key={status}
-                              onClick={() => {
-                                setCompanyStatusFilter(status)
-                              }}
-                              className={cn(
-                                "w-full text-left px-3 py-2 text-sm rounded-md transition-colors",
-                                companyStatusFilter === status
-                                  ? "bg-gray-100 text-gray-900 font-medium"
-                                  : "text-gray-600 hover:bg-gray-50"
-                              )}
-                            >
-                              {status === "todos" ? "Todos los estados" : status.charAt(0).toUpperCase() + status.slice(1)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Ordenar por */}
-                      <div className="border-t border-gray-200 pt-4">
-                        <label className="text-sm font-medium text-gray-700 mb-2 block">
-                          Ordenar por
-                        </label>
-                        <div className="space-y-1">
-                          {[
-                            { value: "nombre", label: "Nombre" },
-                            { value: "procesadas", label: "Facturas Procesadas" },
-                            { value: "por-revisar", label: "Por Revisar" }
-                          ].map((option) => (
-                            <button
-                              key={option.value}
-                              onClick={() => {
-                                setCompanySortBy(option.value)
-                              }}
-                              className={cn(
-                                "w-full text-left px-3 py-2 text-sm rounded-md transition-colors",
-                                companySortBy === option.value
-                                  ? "bg-gray-100 text-gray-900 font-medium"
-                                  : "text-gray-600 hover:bg-gray-50"
-                              )}
-                            >
-                              {option.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Botón para cerrar */}
-                      <div className="border-t border-gray-200 pt-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowCompanyFilters(false)}
-                          className="w-full"
-                        >
-                          Aplicar Filtros
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                  Ingresos
+                </button>
+                <button
+                  onClick={() => setInvoiceType("gastos")}
+                  className={cn(
+                    "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                    invoiceType === "gastos"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  )}
+                >
+                  Gastos
+                </button>
               </div>
-              
             </div>
-            <div className="flex items-center space-x-4">
+
+            {/* Nueva Factura button moved to the right */}
+            <div className="flex items-center">
               <Button variant="outline" className="border-gray-300 text-gray-700 bg-transparent">
                 <Plus className="h-4 w-4 mr-2" />
                 Nueva Factura
@@ -1186,31 +1102,28 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-hidden">
-                  <table className="w-full">
+                  <table className="w-full" style={{ tableLayout: 'fixed' }}>
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-20 pl-6 pr-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider truncate">
                           Número
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Fecha
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-40 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider break-words">
                           {invoiceType === "ingresos" ? "Cliente" : "Proveedor"}
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-64 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider break-words">
                           Concepto
                         </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-24 px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Importe
                         </th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Estado
                         </th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {/* Dejar vacío el nombre de la columna */}
-                        </th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="w-20 pl-3 pr-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Acciones
                         </th>
                       </tr>
@@ -1218,31 +1131,36 @@ export default function Dashboard() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {filteredInvoices.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
+                          <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                             No hay facturas disponibles para el período seleccionado
                           </td>
                         </tr>
                       ) : (
                         filteredInvoices.map((invoice) => (
                           <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{invoice.numero}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">
+                            <td className="w-20 pl-6 pr-3 py-4 text-xs font-medium text-gray-900 truncate" title={invoice.numero}>
+                              {invoice.numero}
+                            </td>
+                            <td className="w-24 px-3 py-4 text-xs text-gray-600">
                               {new Date(invoice.fecha).toLocaleDateString("es-ES")}
                             </td>
-                            <td className="px-6 py-4 text-sm text-gray-900">{invoice.cliente || invoice.proveedor}</td>
-                            <td className="px-6 py-4 text-sm text-gray-600">{invoice.concepto}</td>
-                            <td className="px-6 py-4 text-sm font-semibold text-right">
+                            <td className="w-40 px-3 py-4 text-xs text-gray-900 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                              {invoice.cliente || invoice.proveedor}
+                            </td>
+                            <td className="w-64 px-3 py-4 text-xs text-gray-600 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                              {invoice.concepto}
+                            </td>
+                            <td className="w-24 px-3 py-4 text-sm font-semibold text-right">
                               <span className={invoiceType === "ingresos" ? "text-green-600" : "text-red-600"}>
                                 €{invoice.importe.toLocaleString()}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-center">{getInvoiceStatusBadge(invoice.estado)}</td>
-                            <td className="px-6 py-4 text-center">
+                            <td className="w-16 px-3 py-4 text-center">
                               <div className="flex items-center justify-center">
                                 {getProcessingStatusIcon(invoice.estadoProcesamiento)}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-center">
+                            <td className="w-20 px-3 py-4 text-center">
                               <div className="flex items-center justify-center space-x-1">
                                 <Button
                                   variant="ghost"
@@ -1483,7 +1401,7 @@ export default function Dashboard() {
                     )}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {filteredCompanies.length} de {companiesData.length} empresas
+                    {filteredCompanies.length} empresas activas de {companiesData.length} totales
                   </div>
                 </div>
               </div>
@@ -1514,21 +1432,17 @@ export default function Dashboard() {
                             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                               Última Act.
                             </th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Acciones
-                            </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {filteredCompanies.map((company) => (
-                            <tr key={company.id} className="hover:bg-gray-50 transition-colors">
+                            <tr
+                              key={company.id}
+                              className="hover:bg-gray-50 transition-colors cursor-pointer"
+                              onClick={() => setActiveTab(`empresa-${company.id}`)}
+                            >
                               <td className="px-6 py-4">
-                                <div className="flex items-center space-x-3">
-                                  {getStatusIcon(company.status)}
-                                  <div>
-                                    <div className="font-medium text-gray-900">{company.name}</div>
-                                  </div>
-                                </div>
+                                <div className="font-medium text-gray-900">{company.name}</div>
                               </td>
                               <td className="px-6 py-4 text-center">{getStatusBadge(company.status)}</td>
                               <td className="px-6 py-4 text-center">
@@ -1542,37 +1456,6 @@ export default function Dashboard() {
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-center text-sm text-gray-500">{company.lastUpdate}</td>
-                              <td className="px-6 py-4 text-center">
-                                <div className="flex items-center justify-center space-x-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-gray-600 hover:text-gray-900"
-                                    title="Ver detalles"
-                                    onClick={() => setActiveTab(`empresa-${company.id}`)}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-gray-400 hover:text-gray-400 cursor-not-allowed opacity-60"
-                                    title="Descargar informes"
-                                    disabled
-                                  >
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-gray-400 hover:text-gray-400 cursor-not-allowed opacity-60"
-                                    title="Exportar libro contable"
-                                    disabled
-                                  >
-                                    <FileText className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1633,7 +1516,7 @@ export default function Dashboard() {
                       </CardHeader>
                       <CardContent className="p-3 pt-0 flex justify-center">
                         <div className="flex items-center space-x-2">
-                          <div className="text-xl font-bold text-gray-900">{overviewData.activeCompanies}</div>
+                          <div className="text-xl font-bold text-gray-900">{filteredCompanies.length}</div>
                           <Building2 className="h-4 w-4 text-gray-400" />
                         </div>
                       </CardContent>
@@ -1644,18 +1527,22 @@ export default function Dashboard() {
                       </CardHeader>
                       <CardContent className="p-3 pt-0 flex justify-center">
                         <div className="flex items-center space-x-2">
-                          <div className="text-xl font-bold text-gray-900">{overviewData.processedInvoices}</div>
+                          <div className="text-xl font-bold text-gray-900">
+                            {filteredCompanies.reduce((sum, company) => sum + company.processedInvoices, 0)}
+                          </div>
                           <CheckCircle className="h-4 w-4 text-gray-400" />
                         </div>
                       </CardContent>
                     </Card>
                     <Card className="bg-white border border-gray-200 hover:shadow-sm transition-shadow max-w-[140px]">
                       <CardHeader className="p-2 pb-1">
-                        <CardTitle className="text-xs font-medium text-gray-600">Avisos Importantes</CardTitle>
+                        <CardTitle className="text-xs font-medium text-gray-600">Por Revisar</CardTitle>
                       </CardHeader>
                       <CardContent className="p-3 pt-0 flex justify-center">
                         <div className="flex items-center space-x-2">
-                          <div className="text-xl font-bold text-gray-900">{overviewData.importantAlerts}</div>
+                          <div className="text-xl font-bold text-gray-900">
+                            {filteredCompanies.reduce((sum, company) => sum + company.reviewInvoices, 0)}
+                          </div>
                           <AlertTriangle className="h-4 w-4 text-gray-400" />
                         </div>
                       </CardContent>

@@ -516,8 +516,14 @@ export const useFacturasEmpresa = (empresaId: number) => {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
 
-  const fetchFacturas = async () => {
+  const fetchFacturas = async (force = false) => {
+    // Evitar consultas innecesarias si ya se inicializó y no es force
+    if (isInitialized && !force) {
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -525,20 +531,23 @@ export const useFacturasEmpresa = (empresaId: number) => {
       console.log(`🧾 Obteniendo facturas para empresa ${empresaId}...`)
 
       // Verificar si empresaId es válido
-      if (!empresaId || empresaId === 0) {
+      if (!empresaId || empresaId <= 0) {
         console.log("⚠️ EmpresaId no válido:", empresaId)
         setFacturas({ ingresos: [], gastos: [] })
         setLoading(false)
+        setIsInitialized(true)
         return
       }
 
+      // ✅ Consulta optimizada con límite para evitar sobrecarga
       const { data, error: supabaseError } = await supabase
         .from("facturas")
         .select("*")
         .eq("empresa_id", empresaId)
         .order("fecha", { ascending: false })
+        .limit(2000) // ✅ Límite más generoso pero controlado
 
-      console.log("📋 Facturas recibidas de Supabase:", data)
+      console.log(`📋 Facturas recibidas: ${data?.length || 0} registros`)
       console.log("❌ Error facturas:", supabaseError)
 
       if (supabaseError) {
@@ -549,26 +558,36 @@ export const useFacturasEmpresa = (empresaId: number) => {
         console.log("📭 No se encontraron facturas para la empresa", empresaId)
         setFacturas({ ingresos: [], gastos: [] })
         setLoading(false)
+        setIsInitialized(true)
         return
       }
 
-      // Mapear y separar por tipo
-      const mappedFacturas = data.map(mapSupabaseToInvoice)
+      // Procesar datos de manera más eficiente
+      console.log(`🔄 Procesando ${data.length} facturas...`)
 
-      console.log(JSON.stringify(data, null, 2))
+      // Mapear y separar por tipo de manera más eficiente
+      const ingresos: Invoice[] = []
+      const gastos: Invoice[] = []
 
-      // Filtrar facturas por tipo 'ingreso' y 'gasto'
-      const ingresos = mappedFacturas.filter((factura) => factura.tipo === "Ingresos")
-      const gastos = mappedFacturas.filter((factura) => factura.tipo === "Gastos")
+      for (const factura of data) {
+        const mappedFactura = mapSupabaseToInvoice(factura)
 
-      console.log("💰 Ingresos encontrados:", ingresos.length, ingresos)
-      console.log("💸 Gastos encontrados:", gastos.length, gastos)
+        if (mappedFactura.tipo === "Ingresos") {
+          ingresos.push(mappedFactura)
+        } else if (mappedFactura.tipo === "Gastos") {
+          gastos.push(mappedFactura)
+        }
+      }
+
+      console.log(`✅ Procesado: ${ingresos.length} ingresos, ${gastos.length} gastos`)
 
       setFacturas({ ingresos, gastos })
+      setIsInitialized(true)
     } catch (err) {
       console.error("💥 Error fetching facturas:", err)
       setError(err instanceof Error ? err.message : "Error desconocido")
       setFacturas({ ingresos: [], gastos: [] })
+      setIsInitialized(true)
     } finally {
       setLoading(false)
     }
@@ -577,10 +596,12 @@ export const useFacturasEmpresa = (empresaId: number) => {
   useEffect(() => {
     console.log("🔄 useFacturasEmpresa - empresaId cambió:", empresaId)
     if (empresaId && empresaId > 0) {
-      fetchFacturas()
+      setIsInitialized(false) // Reset initialization flag when empresaId changes
+      fetchFacturas(true)
     } else {
       setFacturas({ ingresos: [], gastos: [] })
       setLoading(false)
+      setIsInitialized(true)
     }
   }, [empresaId])
 
@@ -588,7 +609,7 @@ export const useFacturasEmpresa = (empresaId: number) => {
     facturas,
     loading,
     error,
-    refresh: fetchFacturas,
+    refresh: () => fetchFacturas(true),
   }
 }
 
