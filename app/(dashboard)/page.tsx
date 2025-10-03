@@ -626,7 +626,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb] mx-auto mb-4"></div>
           <p className="text-gray-600">Comprobando sesión...</p>
         </div>
       </div>
@@ -643,7 +643,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2563eb] mx-auto mb-4"></div>
           <p className="text-gray-600">Cargando datos...</p>
         </div>
       </div>
@@ -657,7 +657,7 @@ export default function Dashboard() {
         <div className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-red-600 mb-4">Error al cargar los datos: {companiesError}</p>
-          <Button onClick={handleRefresh} className="bg-gray-900 hover:bg-gray-800 text-white">
+          <Button onClick={handleRefresh} className="bg-[#2563eb] hover:bg-blue-700 text-white">
             <RefreshCw className="h-4 w-4 mr-2" />
             Reintentar
           </Button>
@@ -918,7 +918,7 @@ export default function Dashboard() {
                   Volver a Empresas
                 </Button>
                 <div className="flex items-center space-x-3">
-                  <div className="h-9 w-9 rounded-lg bg-gray-900 flex items-center justify-center">
+                  <div className="h-9 w-9 rounded-lg bg-[#2563eb] flex items-center justify-center">
                     <Building2 className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -1268,7 +1268,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-3">
-                <div className="h-9 w-9 rounded-lg bg-gray-900 flex items-center justify-center">
+                <div className="h-9 w-9 rounded-lg bg-[#2563eb] flex items-center justify-center">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
                 <div>
@@ -1558,7 +1558,7 @@ export default function Dashboard() {
                   <CardContent>
                     {logsLoading ? (
                       <div className="text-center py-2">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 mx-auto mb-2"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#2563eb] mx-auto mb-2"></div>
                         <p className="text-xs text-gray-600">Cargando actividad...</p>
                       </div>
                     ) : logsError ? (
@@ -1582,7 +1582,7 @@ export default function Dashboard() {
                         <div className="min-w-max space-y-2">
                           {logs.slice(0, 20).map((log) => (
                             <div key={log.id} className="flex items-center space-x-2">
-                              <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                              <div className="h-2 w-2 bg-[#2563eb] rounded-full flex-shrink-0"></div>
                               <div className="whitespace-nowrap">
                                 {log.log || "Actividad del sistema"}
                               </div>

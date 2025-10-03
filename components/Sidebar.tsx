@@ -179,7 +179,7 @@ export function Sidebar() {
       >
         <div className="flex items-center">
           {/* Logo container */}
-          <div className="ml-0 h-11 w-11 rounded-full bg-gray-800 text-white flex items-center justify-center text-xl font-bold">
+          <div className="ml-0 h-11 w-11 rounded-full bg-[#2563eb] text-white flex items-center justify-center text-xl font-bold">
             C
           </div>
           
@@ -201,23 +201,23 @@ export function Sidebar() {
             return (
               <li key={item.name} className="relative">
                 <button
-                    onClick={() => handleItemClick(item.tab)}
+                  onClick={() => handleItemClick(item.tab)}
+                  className={cn(
+                    "flex items-center p-3 rounded-lg w-full transition-colors group text-left",
+                    isActive ? "bg-[#2563eb] text-white" : "text-gray-600 hover:bg-gray-50"
+                  )}
+                >
+                  <div className="h-5 w-5 flex-shrink-0 flex items-center justify-center">
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <span 
                     className={cn(
-                        "flex items-center p-3 rounded-lg w-full transition-colors group text-left",
-                        isActive
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-600 hover:bg-gray-50"
+                      "ml-3 whitespace-nowrap transition-all duration-200 text-left w-40",
+                      !isExpanded && "opacity-0 w-0 overflow-hidden"
                     )}
-                    >
-                    <div className="h-5 w-5 flex-shrink-0 flex items-center justify-center">
-                        <item.icon className="h-5 w-5" />
-                    </div>
-                    <span className={cn(
-                        "ml-3 whitespace-nowrap transition-all duration-200 text-left w-40",
-                        !isExpanded && "opacity-0 w-0 overflow-hidden"
-                    )}>
-                        {item.name}
-                    </span>
+                  >
+                    {item.name}
+                  </span>
                 </button>
                 {!isExpanded && (
                   <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
