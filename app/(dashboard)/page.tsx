@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -192,6 +193,7 @@ export default function Dashboard() {
   const [dateInputErrors, setDateInputErrors] = useState<{ from?: string; to?: string }>({})
 
   // ✅ Estados para filtros y ordenación de empresas
+  const [includeInactive, setIncludeInactive] = useState(false)
   const [companyStatusFilter, setCompanyStatusFilter] = useState("todos")
   const [companySortBy, setCompanySortBy] = useState("nombre")
   const [showCompanyFilters, setShowCompanyFilters] = useState(false)
@@ -718,20 +720,25 @@ export default function Dashboard() {
   // ✅ Filtrado y ordenación de empresas mejorado
   const filteredCompanies = companiesData
     .filter((company) => {
-      // Filtro por búsqueda
       const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase())
 
-      // ✅ Excluir empresas con 0 facturas procesadas y 0 por revisar
-      const hasActivity = company.processedInvoices > 0 || company.reviewInvoices > 0
-
-      // Filtro por estado
-      if (companyStatusFilter === "todos") {
-        return matchesSearch && hasActivity
+      if (includeInactive) {
+        return matchesSearch
       }
 
-      return matchesSearch && company.status?.toLowerCase() === companyStatusFilter.toLowerCase() && hasActivity
+      const isActive = company.status?.toLowerCase() === "activa"
+      return matchesSearch && isActive
     })
     .sort((a, b) => {
+      // Si se incluyen inactivas, ordenar por estado primero
+      if (includeInactive) {
+        const aIsActive = a.status?.toLowerCase() === "activa"
+        const bIsActive = b.status?.toLowerCase() === "activa"
+        if (aIsActive && !bIsActive) return 1
+        if (!aIsActive && bIsActive) return -1
+      }
+
+      // Después, ordenar por el criterio seleccionado
       switch (companySortBy) {
         case "procesadas":
           return b.processedInvoices - a.processedInvoices
@@ -1317,9 +1324,23 @@ export default function Dashboard() {
                     className="pl-10 border-gray-300"
                   />
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-6">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="include-inactive"
+                      checked={includeInactive}
+                      onCheckedChange={(checked) => setIncludeInactive(checked as boolean)}
+                      className="border-gray-300"
+                    />
+                    <label
+                      htmlFor="include-inactive"
+                      className="text-sm text-gray-700 cursor-pointer select-none"
+                    >
+                      Incluir inactivas
+                    </label>
+                  </div>
                   <div className="text-sm text-gray-500">
-                    {filteredCompanies.length} empresas activas de {companiesData.length} totales
+                    {filteredCompanies.length} empresas de {companiesData.length} totales
                   </div>
                 </div>
               </div>
